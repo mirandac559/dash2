@@ -20,7 +20,7 @@ def load_data():
 data = load_data()
 
 # Título do dashboard
-st.title('Dashboard de Aluguéis de Imóveis')
+st.title('Aluguéis de Imóveis')
 
 # Filtros
 city_filter = st.sidebar.selectbox('Selecione a cidade:', data['city'].unique())

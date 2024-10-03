@@ -1,18 +1,19 @@
 import streamlit as st
 import pandas as pd
 
-# Função para carregar os dados
+# Função para carregar e limpar os dados
 @st.cache
 def load_data():
     data = pd.read_csv('houses_to_rent_v2.csv')
-    
-    # Garantir que a coluna 'rooms' seja numérica e tratar valores inválidos
+
+    # Converter 'rooms' para numérico e remover valores inválidos
     data['rooms'] = pd.to_numeric(data['rooms'], errors='coerce')  # Converte valores inválidos para NaN
-    data = data.dropna(subset=['rooms'])  # Remove linhas onde 'rooms' é NaN
-    data['rooms'] = data['rooms'].astype(int)  # Converte 'rooms' para inteiro após remoção dos NaNs
-    
-    # Garantir que 'city', 'rent amount (R$)', 'total (R$)', e 'area' estejam adequados
-    data = data.dropna(subset=['city', 'rent amount (R$)', 'total (R$)', 'area'])  # Remover linhas com valores NaN nas colunas críticas
+    data = data.dropna(subset=['rooms'])  # Remove linhas com NaN em 'rooms'
+    data['rooms'] = data['rooms'].astype(int)  # Converter 'rooms' para inteiro
+
+    # Remover linhas com valores NaN em outras colunas importantes
+    data = data.dropna(subset=['city', 'rent amount (R$)', 'total (R$)', 'area'])
+
     return data
 
 # Carregar os dados
@@ -24,20 +25,22 @@ st.title('Dashboard de Aluguéis de Imóveis')
 # Filtros
 city_filter = st.sidebar.selectbox('Selecione a cidade:', data['city'].unique())
 
-# Verificar se a coluna 'rooms' tem valores válidos
-if data['rooms'].notna().all():
-    rooms_filter = st.sidebar.slider('Número de quartos', int(data['rooms'].min()), int(data['rooms'].max()), (1, 3))
+# Obter o valor mínimo e máximo de quartos, garantindo que sejam inteiros válidos
+min_rooms = int(data['rooms'].min())
+max_rooms = int(data['rooms'].max())
+rooms_filter = st.sidebar.slider('Número de quartos', min_rooms, max_rooms, (1, 3))
 
-    # Aplicar filtros e garantir que a filtragem seja feita apenas em valores válidos
+# Aplicar filtros de forma segura
+try:
+    # Verificar se os valores de filtro estão válidos antes de aplicar
     filtered_data = data[(data['city'] == city_filter) & (data['rooms'] >= rooms_filter)]
-
-    # Exibir tabela filtrada
+    
+    # Exibir a tabela filtrada
     st.write(f"Imóveis disponíveis em {city_filter} com pelo menos {rooms_filter} quartos:")
     st.dataframe(filtered_data)
 
-    # Verificar se o dataframe filtrado contém dados antes de gerar os gráficos
+    # Se houver dados após a filtragem, exibir os gráficos
     if not filtered_data.empty:
-        # Visualizações
         st.subheader('Distribuição de Aluguéis')
         st.bar_chart(filtered_data['rent amount (R$)'])
 
@@ -48,8 +51,8 @@ if data['rooms'].notna().all():
         st.scatter_chart(filtered_data[['area', 'total (R$)']].set_index('area'))
     else:
         st.write("Nenhum imóvel encontrado com os critérios selecionados.")
-else:
-    st.write("Erro: Dados de 'rooms' inválidos.")
-    
+except Exception as e:
+    st.error(f"Erro ao aplicar os filtros: {e}")
+
 # Rodapé
 st.write('Fonte dos dados: houses_to_rent_v2.csv')

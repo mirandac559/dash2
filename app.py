@@ -8,7 +8,8 @@ def load_data():
     
     # Garantir que a coluna 'rooms' seja numérica e tratar valores inválidos
     data['rooms'] = pd.to_numeric(data['rooms'], errors='coerce')  # Converte valores inválidos para NaN
-    data.dropna(subset=['rooms'], inplace=True)  # Remove linhas onde 'rooms' é NaN
+    data = data.dropna(subset=['rooms'])  # Remove linhas onde 'rooms' é NaN
+    data['rooms'] = data['rooms'].astype(int)  # Converte 'rooms' para inteiro após remoção dos NaNs
     return data
 
 data = load_data()

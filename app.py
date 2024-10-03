@@ -1,16 +1,20 @@
 import streamlit as st
 import pandas as pd
 
-# Carregar os dados
+# Função para carregar os dados
 @st.cache
 def load_data():
     data = pd.read_csv('houses_to_rent_v2.csv')
+    
+    # Garantir que a coluna 'rooms' seja numérica e tratar valores inválidos
+    data['rooms'] = pd.to_numeric(data['rooms'], errors='coerce')  # Converte valores inválidos para NaN
+    data.dropna(subset=['rooms'], inplace=True)  # Remove linhas onde 'rooms' é NaN
     return data
 
 data = load_data()
 
 # Título do dashboard
-st.title('Aluguéis de Imóveis')
+st.title('Dashboard de Aluguéis de Imóveis')
 
 # Filtros
 city_filter = st.sidebar.selectbox('Selecione a cidade:', data['city'].unique())

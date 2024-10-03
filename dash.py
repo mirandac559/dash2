@@ -28,15 +28,17 @@ city_filter = st.sidebar.selectbox('Selecione a cidade:', data['city'].unique())
 # Obter o valor mínimo e máximo de quartos, garantindo que sejam inteiros válidos
 min_rooms = int(data['rooms'].min())
 max_rooms = int(data['rooms'].max())
-rooms_filter = st.sidebar.slider('Número de quartos', min_rooms, max_rooms, (1, 3))
+
+# Alteração no filtro para capturar intervalo de quartos corretamente
+rooms_filter = st.sidebar.slider('Número de quartos', min_rooms, max_rooms, (min_rooms, max_rooms))
 
 # Aplicar filtros de forma segura
 try:
-    # Verificar se os valores de filtro estão válidos antes de aplicar
-    filtered_data = data[(data['city'] == city_filter) & (data['rooms'] >= rooms_filter)]
-    
+    # Aplicar filtro de intervalo de quartos corretamente
+    filtered_data = data[(data['city'] == city_filter) & (data['rooms'] >= rooms_filter[0]) & (data['rooms'] <= rooms_filter[1])]
+
     # Exibir a tabela filtrada
-    st.write(f"Imóveis disponíveis em {city_filter} com pelo menos {rooms_filter} quartos:")
+    st.write(f"Imóveis disponíveis em {city_filter} com quartos entre {rooms_filter[0]} e {rooms_filter[1]}:")
     st.dataframe(filtered_data)
 
     # Se houver dados após a filtragem, exibir os gráficos
